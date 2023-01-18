@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.17.xsd">
+
+  <changeSet id="001_create_program_id_sequence" author="test">
+    <createSequence sequenceName="program_id_seq" schemaName="test" incrementBy="1"
+      startValue="1" minValue="1" maxValue="9223372036854775807" cacheSize="1"/>
+  </changeSet>
+
+  <changeSet id="002_create_program_table" author="test">
+    <createTable tableName="program">
+      <column name="id" type="bigint" defaultValueSequenceNext="program_id_seq" remarks="Internal record id.">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+    </createTable>
+  </changeSet>
+
+  <changeSet id="003_create_custom_plan_id_sequence" author="test">
+    <createSequence sequenceName="custom_plan_id_seq" schemaName="test" incrementBy="1"
+      startValue="1" minValue="1" maxValue="9223372036854775807" cacheSize="1"/>
+  </changeSet>
+
+  <changeSet id="004_create_custom_plan_table" author="test">
+    <createTable tableName="custom_plan">
+      <column name="id" type="bigint" defaultValueSequenceNext="custom_plan_id_seq" remarks="Internal record id.">
+        <constraints nullable="false" primaryKey="true"/>
+      </column>
+      <column name="program_id" type="bigint">
+        <constraints nullable="false"
+          primaryKey="true"
+          primaryKeyName="pk_custom_plan"/>
+      </column>
+      <column name="enabled" type="boolean" remarks="Plan is enabled or disabled.">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <addForeignKeyConstraint baseColumnNames="program_id"
+      baseTableName="custom_plan"
+      baseTableSchemaName="test"
+      constraintName="fk_custom_plan_program"
+      referencedColumnNames="id"
+      referencedTableName="program"
+      referencedTableSchemaName="test"/>
+
+  </changeSet>
+
+  <changeSet id="005_create_revinfo_table" author="test">
+    <createTable tableName="revinfo" schemaName="test">
+      <column name="rev" type="integer">
+        <constraints primaryKey="true"/>
+      </column>
+      <column name="revtstmp" type="bigint"/>
+    </createTable>
+  </changeSet>
+
+  <!--
+  Hibernate envers expects a global sequence "hibernate_sequence" in order to insert into the revinfo table
+  -->
+  <changeSet id="006_create_hibernate_sequence" author="test">
+    <createSequence sequenceName="hibernate_sequence" schemaName="test" incrementBy="1"
+      startValue="1" minValue="1" maxValue="9223372036854775807" cacheSize="1"/>
+  </changeSet>
+
+  <changeSet id="007_create_aud_tables" author="test">
+    <createTable tableName="program_aud" schemaName="test">
+      <column name="rev" type="integer">
+        <constraints referencedTableName="revinfo"
+          foreignKeyName="fk_program_aud_revision_info"
+          referencedColumnNames="rev"
+          nullable="false"
+          primaryKey="true"
+          primaryKeyName="pk_program"/>
+      </column>
+      <column name="revtype" type="smallint"/>
+      <column name="id" type="bigint">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="pk_program"/>
+      </column>
+    </createTable>
+    <createTable tableName="custom_plan_aud" schemaName="test">
+      <column name="rev" type="integer">
+        <constraints referencedTableName="revinfo"
+          foreignKeyName="fk_custom_plan_aud_revision_info"
+          referencedColumnNames="rev"
+          nullable="false"
+          primaryKey="true"
+          primaryKeyName="pk_custom_plan"/>
+      </column>
+      <column name="revtype" type="smallint"/>
+      <column name="id" type="bigint" remarks="Internal record id.">
+        <constraints nullable="false" primaryKey="true" primaryKeyName="pk_custom_plan"/>
+      </column>
+      <column name="program_id" type="bigint"/>
+      <column name="enabled" type="boolean" remarks="Plan is enabled or disabled."/>
+    </createTable>
+  </changeSet>
+
+</databaseChangeLog>
